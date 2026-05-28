@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   --background: #f8fafc;
@@ -11,33 +9,33 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* ==========================================
-   🚀 SOLID RE-ENFORCED PRODUCTION-SAFE DARK OVERRIDES
+   🚀 PURE TAILWIND V4 PRODUCTION-SAFE DARK ENGINE
    ========================================== */
+
+@variant dark (&:where(.dark, .dark *));
+
 html.dark,
 html.dark body,
-html.dark .min-h-screen,
-html.dark main {
+html.dark main,
+html.dark div[class*="bg-slate-50"] {
   background-color: #0b0f19 !important;
   color: #f8fafc !important;
 }
 
-/* Force Auth Cards and Board Panels to Deep Slate */
+/* Fix Cards and Auth Panels */
 html.dark .bg-white,
 html.dark div[class*="bg-white"],
 html.dark div[class*="bg-slate-900"],
-html.dark .max-w-md {
+html.dark div.max-w-md {
   background-color: #111827 !important;
   border-color: #1f2937 !important;
 }
 
-/* Force Input Fields to Jet Black */
+/* Fix Inputs and Form Fields */
 html.dark input,
-html.dark select,
-html.dark textarea,
 html.dark .bg-slate-100,
 html.dark div[class*="bg-slate-950"] {
   background-color: #030712 !important;
@@ -45,15 +43,15 @@ html.dark div[class*="bg-slate-950"] {
   color: #ffffff !important;
 }
 
-/* Force Navigation Header Blocks */
-html.dark nav, 
+/* Fix Headers and Navigation Links */
+html.dark nav,
 html.dark header,
 html.dark div[class*="bg-white/80"] {
   background-color: #111827 !important;
   border-color: #1f2937 !important;
 }
 
-/* Typography Clarity Controls */
+/* Typography Visibility Constraints */
 html.dark h1, html.dark h2, html.dark h3, html.dark h4,
 html.dark span, html.dark label, html.dark strong,
 html.dark [class*="text-slate-900"],
@@ -61,13 +59,13 @@ html.dark [class*="text-slate-800"] {
   color: #ffffff !important;
 }
 
-html.dark p, 
+html.dark p,
 html.dark [class*="text-slate-500"],
 html.dark [class*="text-slate-400"] {
   color: #9ca3af !important;
 }
 
-/* Field Validation Errors */
+/* Field Validation Warning Texts */
 html.dark .text-red-500,
 html.dark p.text-red-500 {
   color: #f87171 !important;
