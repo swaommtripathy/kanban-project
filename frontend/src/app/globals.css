@@ -20,60 +20,54 @@ body {
 }
 
 /* ==========================================
-   🚀 PRODUCTION-SAFE DARK MODE INJECTIONS
+   🚀 PRODUCTION-SAFE NATIVE DARK OVERRIDES
    ========================================== */
 
-/* Target the root HTML element when the .dark class is added */
-html.dark {
+/* 1. Root and Canvas Backdrops */
+html.dark,
+html.dark body,
+html.dark div.min-h-screen,
+html.dark main {
   background-color: #0b0f19 !important;
   color: #f8fafc !important;
 }
 
-html.dark body {
-  background-color: #0b0f19 !important;
-  color: #f8fafc !important;
-}
-
-/* Force solid cards, authentication containers, and forms to Deep Slate */
+/* 2. Authentication Cards and Grid Dashboard Containers */
 html.dark .bg-white,
-html.dark form.bg-white,
 html.dark div[class*="bg-white"],
-html.dark div[class*="bg-slate-900"] {
+html.dark div[class*="bg-slate-900"],
+html.dark .max-w-md {
   background-color: #111827 !important;
   border-color: #1f2937 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
 }
 
-/* Force Navigation Header Blocks to Dark Charcoal */
+/* 3. Navigation Header Blocks */
 html.dark nav, 
 html.dark header,
-html.dark div[class*="bg-white\/80"] {
+html.dark div[class*="bg-white/80"] {
   background-color: #111827 !important;
   border-color: #1f2937 !important;
 }
 
-/* Force Form Input Fields onto Jet Black */
+/* 4. Form Input Fields and Interactive Form Controls */
 html.dark input,
+html.dark select,
+html.dark textarea,
 html.dark .bg-slate-100,
-html.dark input[class*="bg-slate-100"],
 html.dark div[class*="bg-slate-950"] {
   background-color: #030712 !important;
   border-color: #1f2937 !important;
   color: #ffffff !important;
 }
 
-/* Force Empty Workspace Dash Containers to Glassmorphic Dark Layer */
-html.dark div[class*="bg-white\/50"],
-html.dark div[class*="rounded-[2.5rem]"] {
-  background-color: rgba(17, 24, 39, 0.4) !important;
-  border-color: #1f2937 !important;
-}
-
-/* Typography Overrides */
+/* 5. Typography and Text Clarity Control */
 html.dark h1, 
 html.dark h2, 
 html.dark h3, 
 html.dark span, 
 html.dark label,
+html.dark strong,
 html.dark [class*="text-slate-900"] {
   color: #ffffff !important;
 }
@@ -84,7 +78,13 @@ html.dark [class*="text-slate-400"] {
   color: #9ca3af !important;
 }
 
-/* Validation Text Brilliance Protection */
-html.dark .text-red-500 {
+/* 6. Form Field Inline Validation Text */
+html.dark .text-red-500,
+html.dark p.text-red-500 {
   color: #f87171 !important;
+}
+
+/* 7. Hover and Dashboard Card Interactive Highlights */
+html.dark div[class*="hover:border-indigo-500"]:hover {
+  border-color: #6366f1 !important;
 }
