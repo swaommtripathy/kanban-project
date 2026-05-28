@@ -1,0 +1,60 @@
+// backend/server.js
+
+// 1. LOAD ENV VARIABLES FIRST
+require('dotenv').config(); 
+
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const connectDB = require('./config/db');
+const cors = require('cors');
+
+const app = express();
+const server = http.createServer(app);
+
+// 2. CONNECT TO DATABASE
+connectDB(); 
+
+// 3. GLOBAL MIDDLEWARE (Must be placed BEFORE any route attachments!)
+app.use(cors({
+  origin: 'http://localhost:3000', // Expressly allow your Next.js local development port
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+app.use(express.json()); // Essential to read incoming req.body payloads
+
+// 4. MOUNT APPLICATION ROUTERS
+app.use('/auth', require('./routes/auth'));
+app.use('/api', require('./routes/api'));
+
+// 5. INITIALIZE SOCKET.IO SERVER
+const io = new Server(server, { 
+  cors: { 
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"]
+  } 
+});
+
+// 6. SOCKET.IO REAL-TIME INTERACTION LOGIC
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
+
+  socket.on('join-board', (boardId) => {
+    socket.join(boardId);
+    console.log(`User joined board: ${boardId}`);
+  });
+
+  socket.on('board-updated', (data) => {
+    // Broadcast updates to everyone in the room except the sender
+    socket.to(data.boardId).emit('ui-render-update', data);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected');
+  });
+});
+
+// 7. START UNIFIED LISTENING PIPELINE
+const PORT = process.env.PORT || 5001;
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
