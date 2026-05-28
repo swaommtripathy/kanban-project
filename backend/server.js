@@ -55,6 +55,15 @@ io.on('connection', (socket) => {
   });
 });
 
+// Landing page and Health Check
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: "online",
+    message: "Kanban Project API is running successfully",
+    timestamp: new Date().toISOString()
+  });
+});
+
 // 7. START UNIFIED LISTENING PIPELINE
 const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
