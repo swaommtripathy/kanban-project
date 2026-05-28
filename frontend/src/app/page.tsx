@@ -53,7 +53,64 @@ export default function AuthPage() {
     setError('');
     setLoading(true);
 
-    const endpoint = isLogin ? '/auth/login' : '/auth/register';
+    // ================= VALIDATIONS =================
+
+  // Name validation (Register only)
+  if (!isLogin) {
+    if (!formData.name.trim()) {
+      setError('Full name is required');
+      setLoading(false);
+      return;
+    }
+
+    if (formData.name.trim().length < 3) {
+      setError('Full name must be at least 3 characters');
+      setLoading(false);
+      return;
+    }
+  }
+
+  // Email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!formData.email.trim()) {
+    setError('Email is required');
+    setLoading(false);
+    return;
+  }
+
+  if (!emailRegex.test(formData.email)) {
+    setError('Please enter a valid email address');
+    setLoading(false);
+    return;
+  }
+
+  // Password validation
+  if (!formData.password) {
+    setError('Password is required');
+    setLoading(false);
+    return;
+  }
+
+  if (formData.password.length < 6) {
+    setError('Password must be at least 6 characters');
+    setLoading(false);
+    return;
+  }
+
+  if (!/(?=.*[A-Z])/.test(formData.password)) {
+    setError('Password must contain at least one uppercase letter');
+    setLoading(false);
+    return;
+  }
+
+  if (!/(?=.*[0-9])/.test(formData.password)) {
+    setError('Password must contain at least one number');
+    setLoading(false);
+    return;
+  }
+
+  const endpoint = isLogin ? '/auth/login' : '/auth/register';
     const payload = isLogin 
       ? { email: formData.email, password: formData.password }
       : formData;
