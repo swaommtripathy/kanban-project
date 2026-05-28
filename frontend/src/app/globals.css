@@ -16,71 +16,75 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* ==========================================
-   🚨 EXPLICIT TAILWIND V4 SELECTOR DARK OVERRIDES
+   🚀 PRODUCTION-SAFE DARK MODE INJECTIONS
    ========================================== */
 
-html.dark, 
-.dark body,
-.dark div[class*="bg-slate-50"],
-.dark min-h-screen {
+/* Target the root HTML element when the .dark class is added */
+html.dark {
   background-color: #0b0f19 !important;
   color: #f8fafc !important;
 }
 
-/* 🌟 FORCE SOLID WHITE CARDS & AUTH BLOCKS TO DEEP SLATE IN NIGHT MODE */
-.dark .bg-white,
-.dark form.bg-white,
-.dark div[class*="bg-white"],
-.dark div[class*="bg-slate-900"] {
+html.dark body {
+  background-color: #0b0f19 !important;
+  color: #f8fafc !important;
+}
+
+/* Force solid cards, authentication containers, and forms to Deep Slate */
+html.dark .bg-white,
+html.dark form.bg-white,
+html.dark div[class*="bg-white"],
+html.dark div[class*="bg-slate-900"] {
   background-color: #111827 !important;
   border-color: #1f2937 !important;
 }
 
 /* Force Navigation Header Blocks to Dark Charcoal */
-.dark nav, 
-.dark header,
-.dark div[class*="bg-white\/80"] {
+html.dark nav, 
+html.dark header,
+html.dark div[class*="bg-white\/80"] {
   background-color: #111827 !important;
   border-color: #1f2937 !important;
 }
 
-/* Force Form Input Fields and Fields Background onto Jet Black */
-.dark input,
-.dark .bg-slate-100,
-.dark input[class*="bg-slate-100"],
-.dark div[class*="bg-slate-950"] {
+/* Force Form Input Fields onto Jet Black */
+html.dark input,
+html.dark .bg-slate-100,
+html.dark input[class*="bg-slate-100"],
+html.dark div[class*="bg-slate-950"] {
   background-color: #030712 !important;
   border-color: #1f2937 !important;
   color: #ffffff !important;
 }
 
-/* Force Empty Workspace Dash Containers to Glassmorphism Dark Layer */
-.dark div[class*="bg-white\/50"],
-.dark div[class*="rounded-[2.5rem]"] {
+/* Force Empty Workspace Dash Containers to Glassmorphic Dark Layer */
+html.dark div[class*="bg-white\/50"],
+html.dark div[class*="rounded-[2.5rem]"] {
   background-color: rgba(17, 24, 39, 0.4) !important;
   border-color: #1f2937 !important;
 }
 
-/* Clear textual weight visibility rules */
-.dark h1, 
-.dark h2, 
-.dark h3, 
-.dark span, 
-.dark label,
-.dark [class*="text-slate-900"] {
+/* Typography Overrides */
+html.dark h1, 
+html.dark h2, 
+html.dark h3, 
+html.dark span, 
+html.dark label,
+html.dark [class*="text-slate-900"] {
   color: #ffffff !important;
 }
 
-.dark p, 
-.dark [class*="text-slate-500"],
-.dark [class*="text-slate-400"] {
+html.dark p, 
+html.dark [class*="text-slate-500"],
+html.dark [class*="text-slate-400"] {
   color: #9ca3af !important;
 }
 
-/* Preserve validation text brilliance in night mode */
-.dark .text-red-500 {
+/* Validation Text Brilliance Protection */
+html.dark .text-red-500 {
   color: #f87171 !important;
 }
