@@ -69,3 +69,46 @@ exports.createBoard = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// PATCH /boards/:id - Update board name
+exports.updateBoard = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name } = req.body;
+
+    const board = await Board.findById(id);
+    if (!board) return res.status(404).json({ message: 'Board not found' });
+    if (board.owner_id.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'You are not authorized to update this board' });
+    }
+
+    board.name = name?.trim() ? name.trim() : board.name;
+    await board.save();
+    res.json(board);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// DELETE /boards/:id - Remove board and its related lists/tasks
+exports.deleteBoard = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const board = await Board.findById(id);
+    if (!board) return res.status(404).json({ message: 'Board not found' });
+    if (board.owner_id.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'You are not authorized to delete this board' });
+    }
+
+    const lists = await List.find({ board_id: board._id });
+    const listIds = lists.map((list) => list._id);
+
+    await Task.deleteMany({ list_id: { $in: listIds } });
+    await List.deleteMany({ board_id: board._id });
+    await Board.findByIdAndDelete(id);
+
+    res.status(204).send();
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

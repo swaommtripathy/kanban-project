@@ -8,6 +8,8 @@ const taskController = require('../controllers/taskController');
 router.get('/boards', auth, boardController.getAllBoards);
 router.post('/boards', auth, boardController.createBoard);
 router.get('/boards/:id', auth, boardController.getBoardById);
+router.patch('/boards/:id', auth, boardController.updateBoard);
+router.delete('/boards/:id', auth, boardController.deleteBoard);
 
 // Task Routes
 router.post('/tasks', auth, taskController.createTask);

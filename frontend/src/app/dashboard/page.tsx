@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Layout as BoardIcon, LogOut, Sun, Moon, Briefcase } from 'lucide-react';
+import { Plus, Layout as BoardIcon, LogOut, Sun, Moon, Briefcase, Edit3, Trash2 } from 'lucide-react';
 
 interface Board {
   _id: string;
@@ -14,6 +14,8 @@ export default function DashboardPage() {
   const [boards, setBoards] = useState<Board[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [newBoardTitle, setNewBoardTitle] = useState<string>('');
+  const [editingBoardId, setEditingBoardId] = useState<string | null>(null);
+  const [editingBoardName, setEditingBoardName] = useState<string>('');
   const [mounted, setMounted] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('dark');
 
@@ -126,6 +128,70 @@ export default function DashboardPage() {
     }
   };
 
+  const handleStartBoardEdit = (board: Board) => {
+    setEditingBoardId(board._id);
+    setEditingBoardName(board.name);
+  };
+
+  const handleCancelBoardEdit = () => {
+    setEditingBoardId(null);
+    setEditingBoardName('');
+  };
+
+  const handleSaveBoardEdit = async (boardId: string) => {
+    if (!editingBoardName.trim()) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${cleanBaseUrl}/api/boards/${boardId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ name: editingBoardName.trim() })
+      });
+
+      if (res.ok) {
+        const updatedBoard = await res.json();
+        const updatedBoards = boards.map((board) => board._id === updatedBoard._id ? updatedBoard : board);
+        setBoards(updatedBoards);
+        localStorage.setItem('local_boards_fallback', JSON.stringify(updatedBoards));
+        setEditingBoardId(null);
+        setEditingBoardName('');
+      }
+    } catch (err) {
+      console.error('Board update failed:', err);
+    }
+  };
+
+  const handleDeleteBoard = async (boardId: string) => {
+    const confirmDelete = window.confirm('Delete this board and all its contents?');
+    if (!confirmDelete) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${cleanBaseUrl}/api/boards/${boardId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (res.ok || res.status === 204) {
+        const updatedBoards = boards.filter((board) => board._id !== boardId);
+        setBoards(updatedBoards);
+        localStorage.setItem('local_boards_fallback', JSON.stringify(updatedBoards));
+        if (editingBoardId === boardId) {
+          handleCancelBoardEdit();
+        }
+      }
+    } catch (err) {
+      console.error('Board deletion failed:', err);
+    }
+  };
+
   if (!mounted || loading) {
     return (
       <div className="h-screen bg-slate-50 dark:bg-[#0b0f19] flex items-center justify-center">
@@ -206,13 +272,73 @@ export default function DashboardPage() {
                 onClick={() => router.push(`/board/${board._id}`)}
                 className="group relative p-8 rounded-[2rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all cursor-pointer overflow-hidden"
               >
+                <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+                  {editingBoardId === board._id ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleSaveBoardEdit(board._id); }}
+                        className="p-2 rounded-full bg-emerald-500 text-white hover:bg-emerald-400 transition-all"
+                        title="Save board name"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleCancelBoardEdit(); }}
+                        className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                        title="Cancel edit"
+                      >
+                        ✕
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleStartBoardEdit(board); }}
+                        className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                        title="Edit board name"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleDeleteBoard(board._id); }}
+                        className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-rose-100 dark:hover:bg-rose-950 transition-all"
+                        title="Delete board"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
+                </div>
+
                 <div className="absolute -right-4 -top-4 w-24 h-24 bg-indigo-500/5 rounded-full group-hover:scale-150 transition-transform duration-700" />
                 <div className="flex items-start justify-between mb-8">
                   <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-2xl text-slate-400 group-hover:text-indigo-500 transition-colors">
                     <BoardIcon className="w-6 h-6" />
                   </div>
                 </div>
-                <h3 className="text-2xl font-bold mb-2 group-hover:translate-x-1 transition-transform">{board.name}</h3>
+                {editingBoardId === board._id ? (
+                  <input
+                    value={editingBoardName}
+                    onChange={(e) => setEditingBoardName(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleSaveBoardEdit(board._id);
+                      }
+                      if (e.key === 'Escape') {
+                        handleCancelBoardEdit();
+                      }
+                    }}
+                    className="w-full text-2xl font-bold mb-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 outline-none text-slate-900 dark:text-slate-100"
+                  />
+                ) : (
+                  <h3 className="text-2xl font-bold mb-2 group-hover:translate-x-1 transition-transform">{board.name}</h3>
+                )}
                 <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-widest">
                   <span>Project Created:</span>
                   <span>{new Date(board.createdAt).toLocaleDateString()}</span>
