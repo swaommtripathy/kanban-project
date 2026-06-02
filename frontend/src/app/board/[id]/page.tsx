@@ -384,6 +384,8 @@ export default function BoardPage() {
                             <div
                               ref={provided.innerRef}
                               {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              style={provided.draggableProps.style}
                               className={`p-3.5 rounded-xl text-sm font-semibold border transition-all ${
                                 snapshot.isDragging 
                                   ? `${currentStyle.dragBg} ${currentStyle.dragBorder} text-white scale-[1.02] shadow-2xl rotate-[1deg]` 
@@ -392,14 +394,12 @@ export default function BoardPage() {
                             >
                               <div className="flex items-start justify-between gap-3">
                                 <div className="flex items-center gap-2 min-w-0">
-                                  <button
-                                    type="button"
-                                    {...provided.dragHandleProps}
-                                    className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-200 text-lg leading-none"
+                                  <span
+                                    className="text-slate-400 dark:text-slate-500 text-lg leading-none"
                                     aria-label="Drag card"
                                   >
                                     ⋮⋮
-                                  </button>
+                                  </span>
 
                                   {editingTaskId === task._id ? (
                                     <input
