@@ -4,9 +4,21 @@ const Task = require('../models/Task');
 exports.updateTask = async (req, res) => {
   try {
     const { id } = req.params;
-    // We expect list_id or position in the body for drag-and-drop
+    // We expect list_id or position in the body for drag-and-drop, or title updates
     const updatedTask = await Task.findByIdAndUpdate(id, req.body, { new: true });
+    if (!updatedTask) return res.status(404).json({ message: 'Task not found' });
     res.json(updatedTask);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.deleteTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedTask = await Task.findByIdAndDelete(id);
+    if (!deletedTask) return res.status(404).json({ message: 'Task not found' });
+    res.status(204).send();
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

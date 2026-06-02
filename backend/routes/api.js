@@ -12,7 +12,7 @@ router.get('/boards/:id', auth, boardController.getBoardById);
 // Task Routes
 router.post('/tasks', auth, taskController.createTask);
 router.patch('/tasks/:id', auth, taskController.updateTask);
-
+router.delete('/tasks/:id', auth, taskController.deleteTask);
 
 // Added this router line inside
 router.post('/lists', auth, async (req, res) => {

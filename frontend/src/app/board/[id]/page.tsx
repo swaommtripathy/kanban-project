@@ -32,6 +32,8 @@ export default function BoardPage() {
 
   const [newListTitle, setNewListTitle] = useState<string>('');
   const [newTaskTitles, setNewTaskTitles] = useState<{ [listId: string]: string }>({});
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editingTaskTitle, setEditingTaskTitle] = useState<string>('');
 
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001';
 
@@ -186,6 +188,78 @@ export default function BoardPage() {
     }
   };
 
+  const handleStartTaskEdit = (task: Task) => {
+    setEditingTaskId(task._id);
+    setEditingTaskTitle(task.title);
+  };
+
+  const handleCancelTaskEdit = () => {
+    setEditingTaskId(null);
+    setEditingTaskTitle('');
+  };
+
+  const handleSaveTaskEdit = async (task: Task) => {
+    if (!editingTaskTitle.trim() || editingTaskId !== task._id) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${BACKEND_URL}/api/tasks/${task._id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ title: editingTaskTitle.trim() })
+      });
+
+      if (res.ok) {
+        const updatedTask = await res.json();
+        const updatedLists = lists.map((list) => ({
+          ...list,
+          tasks: list.tasks.map((t) => t._id === updatedTask._id ? { ...t, title: updatedTask.title } : t)
+        }));
+
+        setLists(updatedLists);
+        setEditingTaskId(null);
+        setEditingTaskTitle('');
+        socket?.emit('board-updated', { boardId, lists: updatedLists });
+      }
+    } catch (err) {
+      console.error('Could not save task edit:', err);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    const confirmDelete = window.confirm('Delete this card? This action cannot be undone.');
+    if (!confirmDelete) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${BACKEND_URL}/api/tasks/${taskId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (res.ok || res.status === 204) {
+        const updatedLists = lists.map((list) => ({
+          ...list,
+          tasks: list.tasks.filter((task) => task._id !== taskId)
+        }));
+
+        setLists(updatedLists);
+        if (editingTaskId === taskId) {
+          handleCancelTaskEdit();
+        }
+        socket?.emit('board-updated', { boardId, lists: updatedLists });
+      }
+    } catch (err) {
+      console.error('Could not delete task:', err);
+    }
+  };
+
   const onDragEnd = async (result: DropResult) => {
     const { destination, source, draggableId } = result;
     if (!destination) return;
@@ -310,14 +384,84 @@ export default function BoardPage() {
                             <div
                               ref={provided.innerRef}
                               {...provided.draggableProps}
-                              {...provided.dragHandleProps}
                               className={`p-3.5 rounded-xl text-sm font-semibold border transition-all ${
                                 snapshot.isDragging 
                                   ? `${currentStyle.dragBg} ${currentStyle.dragBorder} text-white scale-[1.02] shadow-2xl rotate-[1deg]` 
                                   : 'bg-slate-50 dark:bg-[#141b2d] border-slate-200 dark:border-slate-800/80 text-slate-800 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700'
                               }`}
                             >
-                              {task.title}
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <button
+                                    type="button"
+                                    {...provided.dragHandleProps}
+                                    className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-200 text-lg leading-none"
+                                    aria-label="Drag card"
+                                  >
+                                    ⋮⋮
+                                  </button>
+
+                                  {editingTaskId === task._id ? (
+                                    <input
+                                      value={editingTaskTitle}
+                                      onChange={(e) => setEditingTaskTitle(e.target.value)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          e.preventDefault();
+                                          handleSaveTaskEdit(task);
+                                        }
+                                        if (e.key === 'Escape') {
+                                          handleCancelTaskEdit();
+                                        }
+                                      }}
+                                      className="min-w-0 flex-1 bg-transparent border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-1 text-sm text-slate-900 dark:text-slate-100 outline-none"
+                                      autoFocus
+                                    />
+                                  ) : (
+                                    <p className="truncate">{task.title}</p>
+                                  )}
+                                </div>
+
+                                <div className="flex items-center gap-1">
+                                  {editingTaskId === task._id ? (
+                                    <>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleSaveTaskEdit(task)}
+                                        className="text-[11px] font-semibold uppercase text-emerald-600 hover:text-emerald-500"
+                                      >
+                                        Save
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={handleCancelTaskEdit}
+                                        className="text-[11px] font-semibold uppercase text-slate-500 hover:text-slate-400"
+                                      >
+                                        Cancel
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleStartTaskEdit(task)}
+                                        className="text-slate-400 hover:text-indigo-500"
+                                        title="Edit card"
+                                      >
+                                        ✎
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteTask(task._id)}
+                                        className="text-slate-400 hover:text-rose-500"
+                                        title="Delete card"
+                                      >
+                                        🗑
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           )}
                         </Draggable>
